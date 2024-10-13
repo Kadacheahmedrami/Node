@@ -1,0 +1,172 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student List</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .student-card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .student-card:hover {
+      transform: scale(1.05);
+    }
+    .card-body {
+      text-align: center;
+    }
+    .student-name {
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .schools-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .schools-list li {
+      background-color: #f8f9fa;
+      margin-bottom: 5px;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    /* Initially hide the delete button */
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    /* Show the delete button on hover */
+    .student-card:hover .delete-btn {
+      display: block;
+    }
+    /* Style for the add student form */
+    #add-student-form {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <h1 class="text-center mb-4">Group of Students</h1>
+
+    <!-- Button to show the add student form -->
+    <button id="add-student-button" class="btn btn-primary mb-4">Add New Student</button>
+
+    <!-- Add Student Form -->
+    <div id="add-student-form" class="mb-4">
+      <h4>Add Student</h4>
+      <form id="student-form">
+        <div class="mb-3">
+          <label for="student-name" class="form-label">Name</label>
+          <input type="text" class="form-control" id="student-name" required>
+        </div>
+        <div class="mb-3">
+          <label for="student-age" class="form-label">Age</label>
+          <input type="number" class="form-control" id="student-age" required>
+        </div>
+        <div class="mb-3">
+          <label for="student-schools" class="form-label">Schools (comma separated)</label>
+          <input type="text" class="form-control" id="student-schools" required>
+        </div>
+        <button type="submit" class="btn btn-success">Submit</button>
+      </form>
+    </div>
+
+    <div class="row">
+      <% students.forEach(student => { %>
+        <div class="col-md-4">
+          <div class="card student-card">
+            <button class="delete-btn">Delete</button> <!-- Delete button -->
+            <div class="card-body">
+              <h5 class="student-name"><%= student.name %></h5>
+              <p class="card-text">Age: <%= student.age %></p>
+              <p style="display: none;"><%= student._id %></p>
+
+              <!-- Display schools -->
+              <h6>Schools:</h6>
+              <ul class="schools-list">
+                <% student.schools.forEach(school => { %>
+                  <li><%= school %></li>
+                <% }) %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Show/Hide Add Student Form
+    document.getElementById('add-student-button').addEventListener('click', () => {
+      const form = document.getElementById('add-student-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Handle form submission
+    document.getElementById('student-form').addEventListener('submit', (e) => {
+      e.preventDefault(); // Prevent default form submission
+      
+      const name = document.getElementById('student-name').value;
+      const age = document.getElementById('student-age').value;
+      const schools = document.getElementById('student-schools').value.split(',').map(s => s.trim());
+       // console.log({ name, age, schools })
+      // Send the new student data to your server
+      fetch('/students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, age, schools }),
+      })
+      .then(response => {  
+        console.log(response) 
+         if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();})
+      .then(data => {
+        console.log(data);
+        // Optionally, you could refresh the page or update the student list without refreshing
+        window.location.reload(); // Refresh to see the new student
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    // Delete button functionality
+    let deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach((but) => {
+      but.addEventListener('click', (e) => {
+        let id = e.target.parentNode.children[1].children[2].innerText;
+        let endpoint = '/students/' + id;
+        fetch(endpoint, {
+          method: 'DELETE'
+        })
+        .then((result) => {
+          window.location.reload(); // Reload the page after deletion
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

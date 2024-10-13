@@ -21,6 +21,7 @@ app.set('views', 'views')  // Set this to 'views'
 
 app.use(express.static('public'))
 app.use(morgan('dev')); 
+
 let name 
 
 
@@ -66,12 +67,14 @@ app.use((req,res,next)=> {
    
 
     // addUSer('miss u', 30,['i dont know'])
-    getUserById('670a87fa9d55f38b568b5574')
+    //getUserById('670a87fa9d55f38b568b5574')
 
     next()
 //    Users.save().then((result)=>{console.log(result)}).catch((error)=>{console.log(error)})
 //     next()
 })
+
+
 
 
 app.get('/', function (req, res) {
@@ -80,6 +83,13 @@ app.get('/', function (req, res) {
 
 
 
+})
+
+app.delete('/blogs/:id',(req,res)=>{
+    const id = req.params.id
+    UserModel.findByIdAndDelete(id).then((result)=>{
+        res.json({redirect:'/students'})
+    })
 })
 
 app.get('/contact',  (req, res) => {
